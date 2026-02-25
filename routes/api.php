@@ -4,8 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
-// 1. IMPORT YOUR NEW BUKU CONTROLLER
 use App\Http\Controllers\Api\BukuController; 
+use App\Http\Controllers\Api\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,18 +25,22 @@ Route::post('/users', [UserController::class, 'store']);
 Route::put('/users/{id}', [UserController::class, 'update']); 
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
-// 2. BUKU ROUTES (Kelola Buku)
-// We keep these public so your Next.js frontend can access them easily during dev
+// BUKU ROUTES (Kelola Buku)
 Route::get('/buku', [BukuController::class, 'index']);
 Route::post('/buku', [BukuController::class, 'store']);
 Route::put('/buku/{id}', [BukuController::class, 'update']);
 Route::delete('/buku/{id}', [BukuController::class, 'destroy']);
 
+// FRONTEND MATCHING ROUTES (No token required for testing UI)
+// Note: Move these inside the auth:sanctum group below once you implement login on the frontend!
+Route::get('/user/profile', [ProfileController::class, 'getProfile']);
+Route::get('/user/activity-logs', [ProfileController::class, 'getActivityLogs']);
+
 
 // --- PROTECTED ROUTES (Requires Sanctum Token) ---
 Route::middleware('auth:sanctum')->group(function () {
     
-    // Profile Management
+    // Profile Management (Original Routes kept for safety)
     Route::get('/user-profile', [AuthController::class, 'profile']);
     Route::put('/user-update', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']); 
