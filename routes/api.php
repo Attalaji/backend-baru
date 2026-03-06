@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\BukuController; 
 use App\Http\Controllers\Api\PeminjamanController; 
 // IMPORT ADMIN CONTROLLER
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\AdminAuthController; 
 
 /*
@@ -37,11 +38,16 @@ Route::post('/buku', [BukuController::class, 'store']);
 Route::put('/buku/{id}', [BukuController::class, 'update']);
 Route::delete('/buku/{id}', [BukuController::class, 'destroy']);
 
+// FRONTEND MATCHING ROUTES (No token required for testing UI)
+// Note: Move these inside the auth:sanctum group below once you implement login on the frontend!
+Route::get('/user/profile', [ProfileController::class, 'getProfile']);
+Route::get('/user/activity-logs', [ProfileController::class, 'getActivityLogs']);
+
 
 // --- PROTECTED USER ROUTES (Requires User Sanctum Token) ---
 Route::middleware('auth:sanctum')->group(function () {
     
-    // Profile Management
+    // Profile Management (Original Routes kept for safety)
     Route::get('/user-profile', [AuthController::class, 'profile']);
     Route::put('/user-update', [AuthController::class, 'updateProfile']);
     
