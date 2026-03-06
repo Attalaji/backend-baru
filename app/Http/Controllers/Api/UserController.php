@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon; // For date formatting
 
 class UserController extends Controller
 {
@@ -48,5 +49,34 @@ class UserController extends Controller
     {
         User::findOrFail($id)->delete();
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * NEW: Method to handle the Activity Log Sidebar in Profile
+     */
+    public function getActivityLogs(Request $request)
+    {
+        // For now, we return these hardcoded logs. 
+        // Later, we can make this dynamic by creating a logs table.
+        return response()->json([
+            [
+                'id' => 1,
+                'description' => 'Berhasil login ke sistem',
+                'timestamp' => Carbon::now()->format('d M Y, H:i'),
+                'icon_type' => 'login'
+            ],
+            [
+                'id' => 2,
+                'description' => 'Memperbarui informasi profil',
+                'timestamp' => Carbon::now()->subMinutes(15)->format('d M Y, H:i'),
+                'icon_type' => 'profile'
+            ],
+            [
+                'id' => 3,
+                'description' => 'Mengubah password keamanan',
+                'timestamp' => Carbon::now()->subDay()->format('d M Y, H:i'),
+                'icon_type' => 'password'
+            ]
+        ]);
     }
 }

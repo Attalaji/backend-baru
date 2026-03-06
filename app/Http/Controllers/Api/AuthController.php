@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password; // Added for password rules
 
 class AuthController extends Controller
 {
@@ -91,13 +92,11 @@ class AuthController extends Controller
 
     /**
      * Update Authenticated User Profile
-     * This fixes the "Gagal memperbarui profil" error
      */
     public function updateProfile(Request $request)
     {
         $user = $request->user();
 
-        // Validation - ensures NIM and Email remain unique except for the current user
         $validator = Validator::make($request->all(), [
             'name'  => 'required|string|max:255',
             'nim'   => 'required|string|unique:users,nim,' . $user->id,
@@ -114,7 +113,6 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // Update user data
         $user->update([
             'name'  => $request->name,
             'nim'   => $request->nim,
@@ -128,6 +126,44 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Profil berhasil diperbarui!',
             'user'    => $user
+        ]);
+    }
+
+    /**
+     * NEW: Change Password Method
+     */
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'old_password' => 'required',
+            'new_password' => ['required', 'confirmed', Password::min(6)],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        // Check if Old Password matches
+        if (!Hash::check($request->old_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Password lama salah.'
+            ], 401);
+        }
+
+        // Update to New Password
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password berhasil diubah!'
         ]);
     }
 
