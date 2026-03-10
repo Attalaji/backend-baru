@@ -20,4 +20,9 @@ class Buku extends Model
         'stok', 
         'tersedia'
     ];
+
+    public function peminjaman()
+{
+    return $this->hasMany(Peminjaman::class, 'buku_id');
+}
 }

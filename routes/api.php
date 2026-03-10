@@ -6,74 +6,71 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\BukuController; 
 use App\Http\Controllers\Api\PeminjamanController; 
-// IMPORT ADMIN CONTROLLER
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\AdminAuthController; 
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API PUBLIC ROUTES
 |--------------------------------------------------------------------------
 */
 
-// --- PUBLIC ROUTES (No Token Required) ---
-
-// Auth User
+// Auth Dasar
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
-// --- NEW: Public Admin Routes ---
-Route::post('/admin/register-secret', [AdminAuthController::class, 'register']); // For Postman
+Route::post('/admin/register-secret', [AdminAuthController::class, 'register']);
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
 
-// Users (Kelola User)
+// Kelola Buku (Public bisa lihat daftar buku)
+Route::get('/buku', [BukuController::class, 'index']);
+
+// Data Peminjaman Admin (Public access jika ingin bypass auth sementara, 
+// tapi sebaiknya dipindah ke dalam middleware nanti untuk keamanan)
+Route::get('/admin/peminjaman', [PeminjamanController::class, 'indexAdmin']);
+Route::post('/admin/peminjaman/{id}/kembali', [PeminjamanController::class, 'kembalikan']);
+
+// Kelola User (Public Access)
 Route::get('/users', [UserController::class, 'index']); 
 Route::post('/users', [UserController::class, 'store']); 
 Route::put('/users/{id}', [UserController::class, 'update']); 
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
-// 2. BUKU ROUTES (Kelola Buku)
-Route::get('/buku', [BukuController::class, 'index']);
+// Kelola Buku - Action (Public Access)
 Route::post('/buku', [BukuController::class, 'store']);
 Route::put('/buku/{id}', [BukuController::class, 'update']);
 Route::delete('/buku/{id}', [BukuController::class, 'destroy']);
 
-// FRONTEND MATCHING ROUTES (No token required for testing UI)
-// Note: Move these inside the auth:sanctum group below once you implement login on the frontend!
+// Profil & Log (Public Access)
 Route::get('/user/profile', [ProfileController::class, 'getProfile']);
 Route::get('/user/activity-logs', [ProfileController::class, 'getActivityLogs']);
 
-
-// --- PROTECTED USER ROUTES (Requires User Sanctum Token) ---
+/*
+|--------------------------------------------------------------------------
+| API PROTECTED ROUTES (Hanya Bisa Diakses Jika Membawa Token)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth:sanctum')->group(function () {
-    
-    // Profile Management (Original Routes kept for safety)
+    // Auth & Profile
     Route::get('/user-profile', [AuthController::class, 'profile']);
     Route::put('/user-update', [AuthController::class, 'updateProfile']);
-    
-    // Security and Activity
     Route::post('/change-password', [AuthController::class, 'changePassword']);
-    Route::get('/activity-logs', [UserController::class, 'getActivityLogs']);
-    
     Route::post('/logout', [AuthController::class, 'logout']); 
 
-    // Fitur Peminjaman
+    // --- FITUR PEMINJAMAN USER ---
+    // Route untuk memproses peminjaman baru (Fungsi store)
     Route::post('/peminjaman', [PeminjamanController::class, 'store']);
-    
-    // Admin Actions (Currently under user sanctum, consider moving to admin group below if strictly for admins)
-    Route::get('/admin/peminjaman', [PeminjamanController::class, 'indexAdmin']);
-    Route::post('/admin/peminjaman/{id}/kembali', [PeminjamanController::class, 'kembalikan']);
+    // Route untuk menampilkan riwayat & pinjaman aktif di dashboard user
+    Route::get('/user/peminjaman', [PeminjamanController::class, 'userPeminjaman']);
 });
 
-// --- NEW: PROTECTED ADMIN ROUTES (Requires Admin Sanctum Token) ---
-// This uses the 'admin' guard we defined in config/auth.php
+/*
+|--------------------------------------------------------------------------
+| ADMIN GUARD ROUTES
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth:admin')->prefix('admin')->group(function () {
     Route::get('/profile', function (Request $request) {
-        return $request->user(); // Returns current Admin data
+        return $request->user(); 
     });
-    
     Route::post('/logout', [AdminAuthController::class, 'logout']);
-
-    // Move your administrative Peminjaman routes here if you want 
-    // to ensure ONLY users from the 'admins' table can access them.
 });

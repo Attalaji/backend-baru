@@ -31,4 +31,9 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function peminjaman()
+{
+    return $this->hasMany(Peminjaman::class, 'user_id');
+}
 }

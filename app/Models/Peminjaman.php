@@ -13,23 +13,25 @@ class Peminjaman extends Model
     protected $table = 'peminjaman';
     protected $guarded = ['id'];
 
-    // Relasi: Satu peminjaman milik satu user
+    // Gunakan $this, bukan $table!
     public function user()
     {
-        return $table->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Relasi: Satu peminjaman berisi satu buku
     public function buku()
     {
         return $this->belongsTo(Buku::class, 'buku_id');
     }
 
-    // Accessor untuk menghitung status secara dinamis
-    // Ini tidak disimpan di DB, tapi dihitung saat data diambil
-    public function getStatusAttribute()
+    // Accessor untuk mempermudah React membaca status
+    protected $appends = ['status_label'];
+
+    public function getStatusLabelAttribute()
     {
-        // Jika hari ini lebih besar dari jatuh tempo, maka terlambat
+        if ($this->tgl_kembali) {
+            return $this->denda > 0 ? 'Terlambat' : 'Tepat Waktu';
+        }
         return Carbon::now()->gt(Carbon::parse($this->jatuh_tempo)) ? 'Terlambat' : 'Aktif';
     }
 }
