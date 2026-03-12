@@ -34,4 +34,8 @@ class Peminjaman extends Model
         }
         return Carbon::now()->gt(Carbon::parse($this->jatuh_tempo)) ? 'Terlambat' : 'Aktif';
     }
+    public function denda()
+{
+    return $this->hasOne(Denda::class, 'peminjaman_id');
+}
 }

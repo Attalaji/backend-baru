@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\BukuController;
 use App\Http\Controllers\Api\PeminjamanController; 
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\AdminAuthController; 
+use App\Http\Controllers\Api\DendaController; // <--- Import Controller Denda
 
 /*
 |--------------------------------------------------------------------------
@@ -24,10 +25,14 @@ Route::post('/admin/login', [AdminAuthController::class, 'login']);
 // Kelola Buku (Public bisa lihat daftar buku)
 Route::get('/buku', [BukuController::class, 'index']);
 
-// Data Peminjaman Admin (Public access jika ingin bypass auth sementara, 
-// tapi sebaiknya dipindah ke dalam middleware nanti untuk keamanan)
+// Data Peminjaman Admin
 Route::get('/admin/peminjaman', [PeminjamanController::class, 'indexAdmin']);
 Route::post('/admin/peminjaman/{id}/kembali', [PeminjamanController::class, 'kembalikan']);
+
+// --- FITUR DENDA (Public Access / Bypass) ---
+// Ditambahkan di sini agar sinkron dengan cara kamu memanggil API di Frontend
+Route::get('/admin/denda', [DendaController::class, 'index']);
+Route::post('/admin/denda/{id}/bayar', [DendaController::class, 'bayar']);
 
 // Kelola User (Public Access)
 Route::get('/users', [UserController::class, 'index']); 
@@ -57,9 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']); 
 
     // --- FITUR PEMINJAMAN USER ---
-    // Route untuk memproses peminjaman baru (Fungsi store)
     Route::post('/peminjaman', [PeminjamanController::class, 'store']);
-    // Route untuk menampilkan riwayat & pinjaman aktif di dashboard user
     Route::get('/user/peminjaman', [PeminjamanController::class, 'userPeminjaman']);
 });
 
@@ -72,5 +75,10 @@ Route::middleware('auth:admin')->prefix('admin')->group(function () {
     Route::get('/profile', function (Request $request) {
         return $request->user(); 
     });
+    
+    // Route Denda versi Protected (Opsional jika ingin lebih aman nanti)
+    Route::get('/denda-secure', [DendaController::class, 'index']);
+    Route::post('/denda/{id}/bayar-secure', [DendaController::class, 'bayar']);
+
     Route::post('/logout', [AdminAuthController::class, 'logout']);
 });
